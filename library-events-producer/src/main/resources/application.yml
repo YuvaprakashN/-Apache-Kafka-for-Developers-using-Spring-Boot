@@ -4,6 +4,8 @@ spring:
   kafka:
     topics:
       library-events: "library-events-topic"
+    template:
+      default-topic: "${spring.kafka.topics.library-events}"
     producer:
       bootstrap-server: localhost:9092,localhost:9093,localhost:9094
       key-serializer: org.apache.kafka.common.serialization.IntegerSerializer
