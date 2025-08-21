@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.learnkafka.library_events_producer.domain.LibraryEvent;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.support.SendResult;
@@ -53,6 +54,29 @@ public class LibraryEventProducer {
         log.info("LibraryEvent sent to {}", topic);
     }
 
+    public void sendLibraryEventsWithProducerRecordAndCompletableFuture(LibraryEvent libraryEvent) throws JsonProcessingException {
+        log.info("LibraryEvent received: {}", libraryEvent);
+        Integer key = libraryEvent.libraryEventId();
+        String value = objectMapper.writeValueAsString(libraryEvent);
+        // kafkaTemplate.sendDefault( key, value);    spring.kafka.template.default-topic config
+        var completableFuture = kafkaTemplate.send(buildProducerRecord(topic,key,value));
+
+        completableFuture.whenComplete(
+                (sendResult, throwable) -> {
+                    if (throwable != null) {
+                        handleSuccess(key,value, sendResult);
+                    } else {
+                        handleFailure(key, value, throwable);
+                    }
+                }
+        );
+
+        log.info("LibraryEvent sent to {}", topic);
+    }
+
+    public ProducerRecord<Integer,String> buildProducerRecord(String topic, Integer key, String value){
+        return new ProducerRecord<>(topic,key,value);
+    }
 
     private void handleFailure(Integer key, String value, Throwable ex) {
         log.error("Error Sending the Message and the exception is {}", ex.getMessage());
@@ -61,8 +85,6 @@ public class LibraryEventProducer {
 //        } catch (Throwable throwable) {
 //            log.error("Error in OnFailure: {}", throwable.getMessage());
 //        }
-
-
     }
 
     private void handleSuccess(Integer key, String value, SendResult<Integer, String> result) {
