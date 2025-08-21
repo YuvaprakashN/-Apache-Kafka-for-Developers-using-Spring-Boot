@@ -6,6 +6,7 @@ import com.learnkafka.library_events_producer.domain.LibraryEvent;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -42,13 +43,29 @@ public class LibraryEventProducer {
         completableFuture.whenComplete(
                 (sendResult, throwable) -> {
                     if (throwable != null) {
-                        //Sucess
+                        handleSuccess(key,value, sendResult);
                     } else {
-                        //failure
+                        handleFailure(key, value, throwable);
                     }
                 }
         );
 
         log.info("LibraryEvent sent to {}", topic);
+    }
+
+
+    private void handleFailure(Integer key, String value, Throwable ex) {
+        log.error("Error Sending the Message and the exception is {}", ex.getMessage());
+//        try {
+//            throw ex;
+//        } catch (Throwable throwable) {
+//            log.error("Error in OnFailure: {}", throwable.getMessage());
+//        }
+
+
+    }
+
+    private void handleSuccess(Integer key, String value, SendResult<Integer, String> result) {
+        log.info("Message Sent SuccessFully for the key : {} and the value is {} , partition is {}", key, value, result.getRecordMetadata().partition());
     }
 }
