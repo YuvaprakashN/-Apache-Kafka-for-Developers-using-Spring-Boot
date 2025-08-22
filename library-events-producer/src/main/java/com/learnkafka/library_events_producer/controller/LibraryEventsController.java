@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,6 +29,31 @@ public class LibraryEventsController {
         }
         libraryEventProducer.sendLibraryEventsWithProducerRecordAndCompletableFuture(libraryEvent);
         return ResponseEntity.status(HttpStatus.CREATED).body(libraryEvent);
+    }
+
+    @PutMapping("/v1/libraryevent")
+    public ResponseEntity<?> putLibraryEvent(@RequestBody @Valid LibraryEvent libraryEvent) throws JsonProcessingException {
+
+
+        ResponseEntity<String> BAD_REQUEST = validateLibraryEvent(libraryEvent);
+        if (BAD_REQUEST != null) return BAD_REQUEST;
+
+        libraryEventProducer.sendLibraryEventsWithProducerRecordAndCompletableFuture(libraryEvent);
+        log.info("after produce call");
+        return ResponseEntity.status(HttpStatus.OK).body(libraryEvent);
+    }
+
+    private ResponseEntity<String> validateLibraryEvent(LibraryEvent libraryEvent) {
+
+        if (libraryEvent.libraryEventId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please pass the LibraryEventId");
+        }
+
+        if (!LibraryEventType.UPDATE.equals(libraryEvent.libraryEventType()))  {
+            log.info("Inside the if block");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Only UPDATE event type is supported");
+        }
+        return null;
     }
 
 }
