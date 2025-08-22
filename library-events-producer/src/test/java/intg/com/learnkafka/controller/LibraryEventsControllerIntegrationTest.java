@@ -31,8 +31,8 @@ import static org.junit.jupiter.api.extension.MediaType.APPLICATION_JSON;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,classes = LibraryEventsProducerApplication.class)
-@EmbeddedKafka(topics = {"${spring.kafka.topics.library-events}"},partitions = 3)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = LibraryEventsProducerApplication.class)
+@EmbeddedKafka(topics = {"${spring.kafka.topics.library-events}"}, partitions = 3)
 @TestPropertySource(properties = {"spring.kafka.producer.bootstrap.server=${{spring.embedded.kafka.brokers}",
         "spring.kafka.admin.producer.bootstrap.server=${spring.embedded.kafka.brokers}"})
 public class LibraryEventsControllerIntegrationTest {
@@ -79,6 +79,25 @@ public class LibraryEventsControllerIntegrationTest {
         consumerRecord.forEach(record -> {
             LibraryEvent libraryEvent1 = TestUtil.parseLibraryEventRecord(objectMapper, record.value());
             assertEquals(libraryEvent1, libraryEvent);
+        });
+    }
+
+    @Test
+    void putLibrartEventTest() {
+        LibraryEvent libraryEvent = TestUtil.libraryEventRecordUpdate();
+
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set(HttpHeaders.CONTENT_TYPE, APPLICATION_JSON.toString());
+        HttpEntity<LibraryEvent> request = new HttpEntity<>(libraryEvent, httpHeaders);
+
+        ResponseEntity<LibraryEvent> response = testRestTemplate.exchange("/v1/libraryevent", HttpMethod.PUT, request, LibraryEvent.class);
+
+        assertEquals(response.getStatusCode(), HttpStatus.OK);
+
+        ConsumerRecords<Integer, String> consumerRecords = KafkaTestUtils.getRecords(consumer);
+        consumerRecords.forEach(record -> {
+            LibraryEvent libraryEvent1 = TestUtil.parseLibraryEventRecord(objectMapper,record.value());
+            assertEquals(libraryEvent1,libraryEvent);
         });
     }
 
