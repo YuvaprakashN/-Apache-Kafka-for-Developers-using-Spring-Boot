@@ -51,7 +51,14 @@ public class LibraryEventsConsumerConfig {
 
     public DefaultErrorHandler defaultErrorHandler(){
         FixedBackOff fixedBackoff = new FixedBackOff(1000L, 2);
-        return new DefaultErrorHandler(fixedBackoff);
+        var defaultErrorHandler=new DefaultErrorHandler(fixedBackoff);
+
+        defaultErrorHandler.setRetryListeners(
+                ((record, ex, deliveryAttempt) -> {
+                    log.info("Failed Record in Retry Listener  exception : {} , deliveryAttempt : {} ", ex.getMessage(), deliveryAttempt);
+                })
+        );
+        return defaultErrorHandler;
     }
 
 }
