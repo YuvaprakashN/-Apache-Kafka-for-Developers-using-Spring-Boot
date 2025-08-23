@@ -37,7 +37,7 @@ public class LibraryEventsConsumerConfig {
     ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(ConcurrentKafkaListenerContainerFactoryConfigurer configurer, ObjectProvider<ConsumerFactory<Object, Object>> kafkaConsumerFactory, ObjectProvider<ContainerCustomizer<Object, Object, ConcurrentMessageListenerContainer<Object, Object>>> kafkaContainerCustomizer) {
         ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory();
         configurer.configure(factory, (ConsumerFactory)kafkaConsumerFactory.getIfAvailable(() -> {
-            return new DefaultKafkaConsumerFactory(this.kafkaProperties.buildConsumerProperties());
+            return new DefaultKafkaConsumerFactory<>(this.kafkaProperties.buildConsumerProperties());
         }));
         Objects.requireNonNull(factory);
        // factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
@@ -45,4 +45,5 @@ public class LibraryEventsConsumerConfig {
         kafkaContainerCustomizer.ifAvailable(factory::setContainerCustomizer);
         return factory;
     }
+
 }
