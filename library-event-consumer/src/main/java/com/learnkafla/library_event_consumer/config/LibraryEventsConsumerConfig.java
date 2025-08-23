@@ -1,6 +1,7 @@
 package com.learnkafla.library_event_consumer.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.utils.ExponentialBackoff;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -17,6 +18,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.List;
@@ -51,8 +53,14 @@ public class LibraryEventsConsumerConfig {
     }
 
     public DefaultErrorHandler defaultErrorHandler() {
-        FixedBackOff fixedBackoff = new FixedBackOff(1000L, 2);
-        var defaultErrorHandler = new DefaultErrorHandler(fixedBackoff);
+        //  FixedBackOff fixedBackoff = new FixedBackOff(1000L, 2);
+
+        var exponentialBackoff = new ExponentialBackOffWithMaxRetries(5);
+        exponentialBackoff.setInitialInterval(1000L);
+        exponentialBackoff.setMultiplier(2.0);
+        exponentialBackoff.setMaxInterval(2000L);
+
+        var defaultErrorHandler = new DefaultErrorHandler(exponentialBackoff);
 
         var exceptionList = List.of(IllegalArgumentException.class);
         exceptionList.forEach(defaultErrorHandler::addNotRetryableExceptions);

@@ -23,7 +23,7 @@ public class LibraryEventsConsumer {
     @KafkaListener(topics = "${spring.kafka.topics.library-events}", groupId = "${spring.kafka.topics.library-events-group-id}")
     public void onMessage(ConsumerRecord<Integer, String> record) throws JsonProcessingException {
         log.info("Consume Msg: {}", record);
-       // throw new IllegalArgumentException("Check Retry: "+ LocalDateTime.now());
-        libraryEventsService.processLibraryEvent(record);
+        throw new RuntimeException("Check Retry: "+ LocalDateTime.now());
+       // libraryEventsService.processLibraryEvent(record);
     }
 }
