@@ -19,6 +19,7 @@ import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.List;
 import java.util.Objects;
 
 @Configuration
@@ -38,21 +39,23 @@ public class LibraryEventsConsumerConfig {
     )
     ConcurrentKafkaListenerContainerFactory<?, ?> kafkaListenerContainerFactory(ConcurrentKafkaListenerContainerFactoryConfigurer configurer, ObjectProvider<ConsumerFactory<Object, Object>> kafkaConsumerFactory, ObjectProvider<ContainerCustomizer<Object, Object, ConcurrentMessageListenerContainer<Object, Object>>> kafkaContainerCustomizer) {
         ConcurrentKafkaListenerContainerFactory<Object, Object> factory = new ConcurrentKafkaListenerContainerFactory();
-        configurer.configure(factory, (ConsumerFactory)kafkaConsumerFactory.getIfAvailable(() -> {
+        configurer.configure(factory, (ConsumerFactory) kafkaConsumerFactory.getIfAvailable(() -> {
             return new DefaultKafkaConsumerFactory<>(this.kafkaProperties.buildConsumerProperties());
         }));
         Objects.requireNonNull(factory);
-       // factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        // factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.setConcurrency(3);
         factory.setCommonErrorHandler(defaultErrorHandler());
         kafkaContainerCustomizer.ifAvailable(factory::setContainerCustomizer);
         return factory;
     }
 
-    public DefaultErrorHandler defaultErrorHandler(){
+    public DefaultErrorHandler defaultErrorHandler() {
         FixedBackOff fixedBackoff = new FixedBackOff(1000L, 2);
-        var defaultErrorHandler=new DefaultErrorHandler(fixedBackoff);
+        var defaultErrorHandler = new DefaultErrorHandler(fixedBackoff);
 
+        var exceptionList = List.of(IllegalArgumentException.class);
+        exceptionList.forEach(defaultErrorHandler::addNotRetryableExceptions);
         defaultErrorHandler.setRetryListeners(
                 ((record, ex, deliveryAttempt) -> {
                     log.info("Failed Record in Retry Listener  exception : {} , deliveryAttempt : {} ", ex.getMessage(), deliveryAttempt);
