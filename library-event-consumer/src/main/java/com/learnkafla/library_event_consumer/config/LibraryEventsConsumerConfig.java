@@ -40,7 +40,8 @@ public class LibraryEventsConsumerConfig {
             return new DefaultKafkaConsumerFactory(this.kafkaProperties.buildConsumerProperties());
         }));
         Objects.requireNonNull(factory);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+       // factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
+        factory.setConcurrency(3);
         kafkaContainerCustomizer.ifAvailable(factory::setContainerCustomizer);
         return factory;
     }

@@ -8,7 +8,7 @@ import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+//@Component
 public class LibraryEventsConsumerManualOffset implements AcknowledgingMessageListener<Integer,String> {
 
     @Override
