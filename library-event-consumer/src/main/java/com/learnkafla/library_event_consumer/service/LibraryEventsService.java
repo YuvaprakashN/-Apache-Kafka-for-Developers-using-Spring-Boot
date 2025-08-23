@@ -52,6 +52,7 @@ public class LibraryEventsService {
     }
 
     private void save(LibraryEvent libraryEvent) {
+        //bookRepository.save(libraryEvent.getBook());
         libraryEvent.getBook().setLibraryEvent(libraryEvent);
         libraryEventsRepository.save(libraryEvent);
         log.info("Successfully Persisted the libary Event {} ", libraryEvent);

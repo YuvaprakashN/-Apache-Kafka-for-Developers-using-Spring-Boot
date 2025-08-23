@@ -1,10 +1,13 @@
 package com.learnkafla.library_event_consumer.consumer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.learnkafla.library_event_consumer.service.LibraryEventsService;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -12,8 +15,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class LibraryEventsConsumer {
 
+    @Autowired
+    private LibraryEventsService libraryEventsService;
+
     @KafkaListener(topics = "${spring.kafka.topics.library-events}", groupId = "${spring.kafka.topics.library-events-group-id}")
-    public void onMessage(ConsumerRecord<Integer, String> record) {
+    public void onMessage(ConsumerRecord<Integer, String> record) throws JsonProcessingException {
         log.info("Consume Msg: {}", record);
+        libraryEventsService.processLibraryEvent(record);
     }
 }
