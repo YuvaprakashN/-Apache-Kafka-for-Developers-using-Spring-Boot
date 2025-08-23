@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: "library-events-consumer"
+  kafka:
+    topics:
+      library-events: "library-events-topic"
+      library-events-group-id: "library-events-listener-group"
+
+
+server:
+  port: 8081
