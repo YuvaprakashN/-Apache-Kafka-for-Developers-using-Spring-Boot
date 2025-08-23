@@ -35,7 +35,7 @@ public class LibraryEventsController {
     public ResponseEntity<?> putLibraryEvent(@RequestBody @Valid LibraryEvent libraryEvent) throws JsonProcessingException {
 
 
-        ResponseEntity<String> BAD_REQUEST = validateLibraryEvent(libraryEvent);
+        ResponseEntity<String> BAD_REQUEST = validateUpdateLibraryEvent(libraryEvent);
         if (BAD_REQUEST != null) return BAD_REQUEST;
 
         libraryEventProducer.sendLibraryEventsWithProducerRecordAndCompletableFuture(libraryEvent);
@@ -43,10 +43,14 @@ public class LibraryEventsController {
         return ResponseEntity.status(HttpStatus.OK).body(libraryEvent);
     }
 
-    private ResponseEntity<String> validateLibraryEvent(LibraryEvent libraryEvent) {
+    private ResponseEntity<String> validateUpdateLibraryEvent(LibraryEvent libraryEvent) {
 
         if (libraryEvent.libraryEventId() == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please pass the LibraryEventId");
+        }
+
+        if (libraryEvent.book().bookId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please add the book to the library");
         }
 
         if (!LibraryEventType.UPDATE.equals(libraryEvent.libraryEventType()))  {
