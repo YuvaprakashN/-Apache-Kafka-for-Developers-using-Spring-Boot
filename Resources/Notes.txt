@@ -1,7 +1,14 @@
 GitHub CMDS:
 https://github.com/dilipsundarraj1/kafka-for-developers-using-spring-boot-v2/blob/main/SetUpKafkaDocker.md#set-up-broker-and-zookeeper
 
+==============================
+Docker up:
+docker compose  -f .\docker-compose-multi-broker.yml up
 
+Decribe: 
+docker exec --interactive --tty kafka1  kafka-topics --bootstrap-server kafka1:19092 --describe
+
+==========================
 List all topics
 kafka-topics --bootstrap-server kafka1:19092 --list
 
