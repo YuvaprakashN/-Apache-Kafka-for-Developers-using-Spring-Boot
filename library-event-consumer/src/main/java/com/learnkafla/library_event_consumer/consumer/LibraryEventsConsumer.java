@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Component
 public class LibraryEventsConsumer {
@@ -21,6 +23,7 @@ public class LibraryEventsConsumer {
     @KafkaListener(topics = "${spring.kafka.topics.library-events}", groupId = "${spring.kafka.topics.library-events-group-id}")
     public void onMessage(ConsumerRecord<Integer, String> record) throws JsonProcessingException {
         log.info("Consume Msg: {}", record);
-        libraryEventsService.processLibraryEvent(record);
+        throw new IllegalArgumentException("Check Retry: "+ LocalDateTime.now());
+        //libraryEventsService.processLibraryEvent(record);
     }
 }

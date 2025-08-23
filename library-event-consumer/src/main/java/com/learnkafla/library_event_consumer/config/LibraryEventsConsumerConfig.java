@@ -16,6 +16,8 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.util.backoff.FixedBackOff;
 
 import java.util.Objects;
 
@@ -42,8 +44,14 @@ public class LibraryEventsConsumerConfig {
         Objects.requireNonNull(factory);
        // factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL);
         factory.setConcurrency(3);
+        factory.setCommonErrorHandler(defaultErrorHandler());
         kafkaContainerCustomizer.ifAvailable(factory::setContainerCustomizer);
         return factory;
+    }
+
+    public DefaultErrorHandler defaultErrorHandler(){
+        FixedBackOff fixedBackoff = new FixedBackOff(1000L, 2);
+        return new DefaultErrorHandler(fixedBackoff);
     }
 
 }
