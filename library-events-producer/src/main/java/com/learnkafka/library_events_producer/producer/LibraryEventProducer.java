@@ -13,6 +13,7 @@ import org.springframework.kafka.support.SendResult;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @Slf4j
@@ -58,7 +59,7 @@ public class LibraryEventProducer {
         log.info("LibraryEvent sent to {}", topic);
     }
 
-    public void sendLibraryEventsWithProducerRecordAndCompletableFuture(LibraryEvent libraryEvent) throws JsonProcessingException {
+    public CompletableFuture<SendResult<Integer, String>> sendLibraryEventsWithProducerRecordAndCompletableFuture(LibraryEvent libraryEvent) throws JsonProcessingException {
         log.info("LibraryEvent received: {}", libraryEvent);
         Integer key = libraryEvent.libraryEventId();
         String value = objectMapper.writeValueAsString(libraryEvent);
@@ -76,6 +77,7 @@ public class LibraryEventProducer {
         );
 
         log.info("LibraryEvent sent to {}", topic);
+        return completableFuture;
     }
 
     public ProducerRecord<Integer,String> buildProducerRecord(String topic, Integer key, String value){
