@@ -8,6 +8,14 @@
         <option name="gradleJvm" value="ms-21" />
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/library-event-consumer" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/library-event-consumer" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/library-events-producer" />
         <option name="gradleJvm" value="ms-21" />
       </GradleProjectSettings>

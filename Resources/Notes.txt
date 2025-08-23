@@ -4,3 +4,6 @@ https://github.com/dilipsundarraj1/kafka-for-developers-using-spring-boot-v2/blo
 
 List all topics
 kafka-topics --bootstrap-server kafka1:19092 --list
+
+Consumer:
+https://docs.spring.io/spring-kafka/reference/kafka/receiving-messages/message-listeners.html
