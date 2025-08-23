@@ -9,10 +9,10 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 @Slf4j
-@Component
+//@Component
 public class LibraryEventsConsumer {
 
-    @KafkaListener(topics = "${spring.kafka.topics.library-events}", groupId = "spring.kafka.topics.library-events-group-id")
+    @KafkaListener(topics = "${spring.kafka.topics.library-events}", groupId = "${spring.kafka.topics.library-events-group-id}")
     public void onMessage(ConsumerRecord<Integer, String> record) {
         log.info("Consume Msg: {}", record);
     }

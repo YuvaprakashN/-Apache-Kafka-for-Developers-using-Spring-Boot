@@ -7,3 +7,5 @@ kafka-topics --bootstrap-server kafka1:19092 --list
 
 Consumer:
 https://docs.spring.io/spring-kafka/reference/kafka/receiving-messages/message-listeners.html
+
+offset Commit: https://docs.spring.io/spring-kafka/reference/kafka/receiving-messages/message-listener-container.html#committing-offsets
