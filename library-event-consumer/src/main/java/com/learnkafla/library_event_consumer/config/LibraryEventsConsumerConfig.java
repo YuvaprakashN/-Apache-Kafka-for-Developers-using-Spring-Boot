@@ -52,8 +52,10 @@ public class LibraryEventsConsumerConfig {
                 (record, ex) -> {
                     log.error("Exception in publishingRecoverer: {}", ex.getMessage(), ex);
                     if (ex.getCause() instanceof RecoverableDataAccessException) {
+                        log.info("Publish msg to retry");
                         return new TopicPartition(retryTopic, record.partition());
                     } else {
+                        log.info("Publish msg to dlq");
                         return new TopicPartition(deadLetterTopic, record.partition());
 
                     }
