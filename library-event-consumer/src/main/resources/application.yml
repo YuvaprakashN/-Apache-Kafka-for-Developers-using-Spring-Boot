@@ -5,7 +5,8 @@ spring:
     topics:
       library-events: "library-events-topic"
       library-events-group-id: "library-events-listener-group"
-
+      library-events-retry: "library-events.RETRY"
+      library-events-dql: "library-events.DLQ"
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver

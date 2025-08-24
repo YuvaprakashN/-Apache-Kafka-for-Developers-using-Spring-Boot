@@ -39,8 +39,11 @@ public class LibraryEventsConsumerConfig {
     @Autowired
     KafkaTemplate kafkaTemplate;
 
-    @Value("${topics.retry:library-events.RETRY}")
+    @Value("${spring.kafka.topics.library-events-retry:library-events.RETRY}")
     String retryTopic;
+
+    @Value("${spring.kafka.topics.library-events-dlq:library-events.DLQ}")
+    String deadLetterTopic;
 
     @Bean
     public DeadLetterPublishingRecoverer publishingRecoverer() {
@@ -50,9 +53,11 @@ public class LibraryEventsConsumerConfig {
                     log.error("Exception in publishingRecoverer: {}", ex.getMessage(), ex);
                     if (ex.getCause() instanceof RecoverableDataAccessException) {
                         return new TopicPartition(retryTopic, record.partition());
+                    } else {
+                        return new TopicPartition(deadLetterTopic, record.partition());
+
                     }
-                    // Fallback: send to default dead-letter topic or return null
-                    return null;
+
                 }
         );
     }
@@ -82,7 +87,7 @@ public class LibraryEventsConsumerConfig {
         exponentialBackoff.setMultiplier(2.0);
         exponentialBackoff.setMaxInterval(2000L);
 
-        var defaultErrorHandler = new DefaultErrorHandler(publishingRecoverer(),exponentialBackoff);
+        var defaultErrorHandler = new DefaultErrorHandler(publishingRecoverer(), exponentialBackoff);
 
         var exceptionList = List.of(IllegalArgumentException.class);
         exceptionList.forEach(defaultErrorHandler::addNotRetryableExceptions);
