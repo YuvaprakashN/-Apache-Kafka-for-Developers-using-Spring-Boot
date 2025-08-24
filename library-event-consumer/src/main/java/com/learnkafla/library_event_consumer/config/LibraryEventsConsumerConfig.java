@@ -1,14 +1,17 @@
 package com.learnkafla.library_event_consumer.config;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.ExponentialBackoff;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.kafka.ConcurrentKafkaListenerContainerFactoryConfigurer;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.RecoverableDataAccessException;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.ContainerCustomizer;
@@ -17,6 +20,7 @@ import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 import org.springframework.util.backoff.FixedBackOff;
@@ -34,6 +38,24 @@ public class LibraryEventsConsumerConfig {
 
     @Autowired
     KafkaTemplate kafkaTemplate;
+
+    @Value("${topics.retry:library-events.RETRY}")
+    String retryTopic;
+
+    @Bean
+    public DeadLetterPublishingRecoverer publishingRecoverer() {
+        return new DeadLetterPublishingRecoverer(
+                kafkaTemplate,
+                (record, ex) -> {
+                    log.error("Exception in publishingRecoverer: {}", ex.getMessage(), ex);
+                    if (ex.getCause() instanceof RecoverableDataAccessException) {
+                        return new TopicPartition(retryTopic, record.partition());
+                    }
+                    // Fallback: send to default dead-letter topic or return null
+                    return null;
+                }
+        );
+    }
 
     @Bean
     @ConditionalOnMissingBean(
@@ -60,7 +82,7 @@ public class LibraryEventsConsumerConfig {
         exponentialBackoff.setMultiplier(2.0);
         exponentialBackoff.setMaxInterval(2000L);
 
-        var defaultErrorHandler = new DefaultErrorHandler(exponentialBackoff);
+        var defaultErrorHandler = new DefaultErrorHandler(publishingRecoverer(),exponentialBackoff);
 
         var exceptionList = List.of(IllegalArgumentException.class);
         exceptionList.forEach(defaultErrorHandler::addNotRetryableExceptions);
