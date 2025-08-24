@@ -2,6 +2,7 @@ package com.learnkafla.library_event_consumer.consumer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.learnkafla.library_event_consumer.service.FailureService;
 import com.learnkafla.library_event_consumer.service.LibraryEventsService;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;

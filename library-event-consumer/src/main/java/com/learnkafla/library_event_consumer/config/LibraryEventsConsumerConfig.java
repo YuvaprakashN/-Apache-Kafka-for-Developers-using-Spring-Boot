@@ -1,6 +1,8 @@
 package com.learnkafla.library_event_consumer.config;
 
+import com.learnkafla.library_event_consumer.service.FailureService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.utils.ExponentialBackoff;
 import org.springframework.beans.factory.ObjectProvider;
@@ -18,10 +20,7 @@ import org.springframework.kafka.config.ContainerCustomizer;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.kafka.listener.ConcurrentMessageListenerContainer;
-import org.springframework.kafka.listener.ContainerProperties;
-import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
-import org.springframework.kafka.listener.DefaultErrorHandler;
+import org.springframework.kafka.listener.*;
 import org.springframework.kafka.support.ExponentialBackOffWithMaxRetries;
 import org.springframework.util.backoff.FixedBackOff;
 
@@ -33,6 +32,9 @@ import java.util.Objects;
 @Slf4j
 public class LibraryEventsConsumerConfig {
 
+    public static final String RETRY = "RETRY";
+    public static final String SUCCESS = "SUCCESS";
+    public static final String DEAD = "DEAD";
     @Autowired
     KafkaProperties kafkaProperties;
 
@@ -44,6 +46,24 @@ public class LibraryEventsConsumerConfig {
 
     @Value("${spring.kafka.topics.library-events-dlq:library-events.DLQ}")
     String deadLetterTopic;
+
+
+    @Autowired
+    private FailureService failureService;
+
+
+    ConsumerRecordRecoverer consumerRecordRecoverer = (record, exception) -> {
+        log.error("Exception is : {} Failed Record : {} ", exception, record);
+        if (exception.getCause() instanceof RecoverableDataAccessException) {
+            log.info("Inside the recoverable logic");
+            //Add any Recovery Code here.
+            failureService.saveFailedRecord((ConsumerRecord<Integer, String>) record, exception, RETRY);
+
+        } else {
+            log.info("Inside the non recoverable logic and skipping the record : {}", record);
+
+        }
+    };
 
     @Bean
     public DeadLetterPublishingRecoverer publishingRecoverer() {
@@ -89,7 +109,10 @@ public class LibraryEventsConsumerConfig {
         exponentialBackoff.setMultiplier(2.0);
         exponentialBackoff.setMaxInterval(2000L);
 
-        var defaultErrorHandler = new DefaultErrorHandler(publishingRecoverer(), exponentialBackoff);
+        var defaultErrorHandler = new DefaultErrorHandler(
+                consumerRecordRecoverer,
+                //publishingRecoverer(),
+                exponentialBackoff);
 
         var exceptionList = List.of(IllegalArgumentException.class);
         exceptionList.forEach(defaultErrorHandler::addNotRetryableExceptions);
